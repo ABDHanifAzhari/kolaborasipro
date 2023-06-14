@@ -6,7 +6,6 @@ import pickle
 from sklearn.preprocessing import MinMaxScaler
 
 Home, Implementasi = st.tabs(['Home','Implementasi'])
-# test y
 with Home:
    st.title("""Time Series Temperatur Ruangan""")
    st.subheader('Nama Kelompok')
@@ -29,3 +28,40 @@ with Home:
             1) Datetime1 menunjukkan jam perekaman
             2) DAYTON_MW menunjukkan nilai suhu udara rata-rata dalam derajat celcius/jam
             3) Datetime menunjukkan tanggal dan Jam perekaman data""")
+   
+
+with Implementasi:
+   st.title("""Implementasi Data""")
+
+   suhu1 = st.number_input("Temprature Ruangan 1 Jam Sebelumnya", 5.35, 36.5, step=0.01)
+   suhu2 = st.number_input("Temprature Ruangan 2 Jam Sebelumnya", 5.35, 36.5, step=0.01)
+   suhu3 = st.number_input("Temprature Ruangan 3 Jam Sebelumnya", 5.35, 36.5, step=0.01)
+
+   def submit():
+      #load save model
+      model = pickle.load(open('model_knn.sav', 'rb'))
+      data=pd.read_csv('MLTempDataset.csv', index_col=0)
+      temp=data["DAYTON_MW"]
+      n=len(temp)
+      sizeTrain=(round(n*0.8))
+      data_Train=pd.DataFrame(temp[:sizeTrain])
+
+      scaler=MinMaxScaler()
+      scaled = scaler.fit_transform(data_Train)
+      
+      inputs = np.array([[suhu3, suhu2, suhu1]])
+      st.write("Data Input :",inputs)
+      x = scaler.transform(inputs.reshape(-1,1))
+      st.write("Hasil Normalisasi :",x)
+    #   test=np.array(x)
+      test=x.reshape(1,3)
+      st.write(test)
+      y_pred = model.predict(test) 
+      st.write("Hasil Prediksi :",y_pred)
+      x=scaler.inverse_transform(y_pred.reshape(-1,1))
+      st.success(f"Suhu ruang diprediksi sebesar : {x[0][0]}")
+      
+   all = st.button("Submit")
+   if all :
+      st.balloons()
+      submit()
